@@ -2,6 +2,7 @@
 """
 PandasAI is a wrapper around a LLM to make dataframes conversational
 """
+from __future__ import annotations
 
 import os
 from io import BytesIO
@@ -17,6 +18,8 @@ from pandasai.data_loader.semantic_layer_schema import (
     Source,
     Transformation,
 )
+from pandasai.ee.skills import skill
+from pandasai.ee.skills.manager import SkillsManager
 from pandasai.exceptions import DatasetNotFound, InvalidConfigError
 from pandasai.helpers.path import (
     find_project_root,
@@ -210,6 +213,8 @@ config = ConfigManager()
 
 api_key = APIKeyManager()
 
+skills = SkillsManager()
+
 
 def chat(query: str, *dataframes: DataFrame, sandbox: Optional[Sandbox] = None):
     """
@@ -321,6 +326,7 @@ __all__ = [
     "chat",
     "follow_up",
     "load",
+    "skill",
     # Deprecated
     "SmartDataframe",
     "SmartDatalake",

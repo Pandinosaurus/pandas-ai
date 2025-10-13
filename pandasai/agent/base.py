@@ -65,6 +65,12 @@ class Agent:
                 stacklevel=2,
             )
 
+        # Transition pd dataframe to pandasai dataframe
+        if isinstance(dfs, list):
+            dfs = [DataFrame(df) if self.is_pd_dataframe(df) else df for df in dfs]
+        elif self.is_pd_dataframe(dfs):
+            dfs = DataFrame(dfs)
+
         if isinstance(dfs, list):
             sources = [df.schema.source or df._loader.source for df in dfs]
             if not BaseQueryBuilder.check_compatible_sources(sources):
@@ -79,6 +85,9 @@ class Agent:
         self._code_generator = CodeGenerator(self._state)
         self._response_parser = ResponseParser()
         self._sandbox = sandbox
+
+    def is_pd_dataframe(self, df: Union[DataFrame, VirtualDataFrame]) -> bool:
+        return not isinstance(df, DataFrame) and isinstance(df, pd.DataFrame)
 
     def chat(self, query: str, output_type: Optional[str] = None):
         """
@@ -117,6 +126,8 @@ class Agent:
 
         code_executor = CodeExecutor(self._state.config)
         code_executor.add_to_env("execute_sql_query", self._execute_sql_query)
+        for skill in self._state.skills:
+            code_executor.add_to_env(skill.name, skill.func)
 
         if self._sandbox:
             return self._sandbox.execute(code, code_executor.environment)
